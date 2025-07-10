@@ -22,7 +22,7 @@ model User {
   birthdate     DateTime?
   phone         Int?
   address       String?
-  
+  Qualifications Qualifications[]
   accounts      Account[]
   sessions      Session[]
   role          Role @default(Teacher)
@@ -30,6 +30,15 @@ model User {
   updatedAt DateTime @updatedAt
 }
  
+model Qualifications{
+  id String @id @default(cuid())
+  title String
+  date DateTime
+  rate Int
+  teacherid String
+  teacher User @relation(fields: [teacherid] ,references: [id])
+}
+
 model Account {
   userId            String
   type              String
