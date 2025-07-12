@@ -1,6 +1,7 @@
 import { User } from "@/generated/prisma"
 import { Edit, Trash2Icon } from "lucide-react"
 import { Button } from "./ui/button"
+import Link from "next/link"
 
 interface TeachersTableProps {
   teachers: User[]
@@ -36,8 +37,8 @@ export default function TeachersTable({ teachers }: TeachersTableProps) {
           <tbody>
             {teachers.map((teacher) => (
               <tr key={teacher.id} className="border-b transition-colors hover:bg-muted/50">
-                <td className="p-4 align-middle font-medium">
-                  {teacher.name}
+                <td className="p-4 align-middle hover:cursor-pointer">
+                  <Link href={`/teacher/${teacher.id}`}>{teacher.name}</Link>
                 </td>
                 <td className="p-4 align-middle">
                   {teacher.phone || "Not Available"}
