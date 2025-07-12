@@ -3,7 +3,6 @@ import { useParams } from "next/navigation";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { User } from "@/generated/prisma";
-import MaxWidthContainer from "@/components/maxwidthcontainer";
 import { EditIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSession } from "next-auth/react";
@@ -48,10 +47,9 @@ export default function TeachProfileCompo() {
     fetchData();
   }, []);
 
-  // Check if current user can edit this profile
   const canEdit = session && (
-    session.user?.id === params.id || // User editing their own profile
-    (session.user as any)?.role === "Admin"    // Admin can edit any profile
+    session.user?.id === params.id || 
+    (session.user as any)?.role === "Admin" 
   );
 
   const handleUpdateProfile = async () => {
@@ -60,7 +58,7 @@ export default function TeachProfileCompo() {
         id: params.id,
         ...formData,
       });
-      fetchData(); // Refresh data
+      fetchData();
       setEditDialogOpen(false);
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -77,7 +75,7 @@ export default function TeachProfileCompo() {
 
   return (
       <div className="max-w-3/5">
-        <div className="bg-card rounded-lg shadow-lg overflow-hidden border">
+        <div className="bg-card rounded-lg shadow-lg overflow-hidden border h-full">
           <div className="bg-gradient-to-r from-primary to-primary/80 px-6 py-8 flex justify-between">
             <div className="flex items-center space-x-4">
               {teacherData.image && (

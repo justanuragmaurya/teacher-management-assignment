@@ -11,7 +11,13 @@ export async function POST(req: NextRequest) {
   const teacher = await prisma.user.findUnique({ 
     where: { id: id },
     include: {
-      Qualifications: true
+      Qualifications: true,
+      Availability: {
+        orderBy: [
+          { dayOfWeek: 'asc' },
+          { timeSlot: 'asc' }
+        ]
+      }
     }
   });
   return NextResponse.json(teacher);
@@ -47,7 +53,13 @@ export async function PUT(req: NextRequest) {
         address,
       },
       include: {
-        Qualifications: true
+        Qualifications: true,
+        Availability: {
+          orderBy: [
+            { dayOfWeek: 'asc' },
+            { timeSlot: 'asc' }
+          ]
+        }
       }
     });
 

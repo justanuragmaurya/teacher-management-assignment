@@ -1,4 +1,4 @@
-import { PrismaClient, Role } from '../src/generated/prisma'
+import { PrismaClient, Role, DayOfWeek, AvailabilityStatus } from '../src/generated/prisma'
 
 const prisma = new PrismaClient()
 
@@ -97,11 +97,61 @@ function getRandomQualificationDate(): Date {
   return getRandomDate(fortyYearsAgo, currentDate)
 }
 
+// Generate time slots for availability (7:30 AM to 6:30 PM with 1-hour gaps)
+function generateTimeSlots(): string[] {
+  const slots = []
+  for (let hour = 7; hour <= 17; hour++) {
+    const startTime = hour < 10 ? `0${hour}:30` : `${hour}:30`
+    const endHour = hour + 1
+    const endTime = endHour < 10 ? `0${endHour}:30` : `${endHour}:30`
+    slots.push(`${startTime}-${endTime}`)
+  }
+  return slots
+}
+
+// Generate random availability for a teacher
+async function createAvailabilityForTeacher(teacherId: string) {
+  const timeSlots = generateTimeSlots()
+  const days = [
+    DayOfWeek.MONDAY,
+    DayOfWeek.TUESDAY,
+    DayOfWeek.WEDNESDAY,
+    DayOfWeek.THURSDAY,
+    DayOfWeek.FRIDAY,
+    DayOfWeek.SATURDAY,
+    DayOfWeek.SUNDAY
+  ]
+
+  for (const day of days) {
+    for (const timeSlot of timeSlots) {
+      // Random availability - 70% available, 20% unavailable, 10% scheduled
+      const rand = Math.random()
+      let status: AvailabilityStatus = AvailabilityStatus.AVAILABLE
+      
+      if (rand > 0.7 && rand <= 0.9) {
+        status = AvailabilityStatus.UNAVAILABLE
+      } else if (rand > 0.9) {
+        status = AvailabilityStatus.SCHEDULED
+      }
+
+      await prisma.availability.create({
+        data: {
+          teacherId,
+          dayOfWeek: day,
+          timeSlot,
+          status
+        }
+      })
+    }
+  }
+}
+
 async function main() {
   console.log('🌱 Starting database seeding...')
 
   // Clear existing data
   console.log('🧹 Clearing existing data...')
+  await prisma.availability.deleteMany({})
   await prisma.qualifications.deleteMany({})
   await prisma.user.deleteMany({})
   console.log('✅ Existing data cleared')
@@ -175,10 +225,24 @@ async function main() {
     })
   }
 
+  // Create availability for all users (including admin)
+  console.log('📅 Creating availability schedules...')
+  
+  // Create availability for admin user
+  await createAvailabilityForTeacher(yourUser.id)
+  console.log(`📅 Created availability for admin: ${yourUser.name}`)
+  
+  // Create availability for all teachers
+  for (const teacher of teachers) {
+    await createAvailabilityForTeacher(teacher.id)
+    console.log(`📅 Created availability for teacher: ${teacher.name}`)
+  }
+
   console.log('🎉 Database seeding completed successfully!')
   console.log(`📊 Created ${teachers.length + 1} users total`)
   console.log(`👥 ${teachers.filter(t => t.role === Role.Teacher).length} teachers`)
   console.log(`👑 ${teachers.filter(t => t.role === Role.Admin).length + 1} admins`)
+  console.log(`📅 Created availability schedules for all users`)
 }
 
 main()
